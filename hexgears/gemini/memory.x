@@ -1,0 +1,1 @@
+../../common/memory/atsam4s8b.x

@@ -1,0 +1,66 @@
+[package]
+name = "gemini"
+version = "0.1.0"
+authors = ["Jacob Alexander <haata@kiibohd.com>"]
+edition = "2018"
+description = "Hexgears Gemini Dusk/Dawn Keyboard"
+keywords = ["arm", "cortex-m", "atsam4", "atsam4s", "atsam4s8b", "hal"]
+categories = ["embedded", "hardware-support", "no-std"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/kiibohd/kiibohd-firmware"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "gemini"
+path = "src/bin.rs"
+
+[build-dependencies]
+cmake = "0.1"
+
+[dependencies]
+cortex-m = "0.6.3"
+embedded-hal = "~0.2.4"
+nb = "~0.1"
+cortex-m-semihosting = "~0.3"
+paste = "1.0"
+kiibohd-core = { git = "https://github.com/kiibohd/kiibohd-core.git" }
+
+[dependencies.cortex-m-rt]
+version = "~0.6.12"
+optional = true
+
+[dependencies.panic-abort]
+version = "~0.3"
+optional = true
+
+[dependencies.panic-halt]
+version = "~0.2"
+optional = true
+
+[dependencies.panic-semihosting]
+version = "~0.5"
+optional = true
+features = ["jlink-quirks"]
+
+[dependencies.atsam4-hal]
+git = "https://github.com/haata/atsam4-hal.git"
+#version = "0.1.5"
+default-features = false
+features = ["atsam4s8b"]
+
+[features]
+default = ["rt", "panic_semihosting"]
+rt = ["cortex-m-rt"]
+panic_halt = ["panic-halt"]
+panic_abort = ["panic-abort"]
+panic_semihosting = ["panic-semihosting"]
+use_semihosting = []
+
+[dev-dependencies.cortex-m-rtic]
+version = "0.5.6"
+
+#[patch.crates-io]
+#atsam4-hal = { path = "/home/hyatt/git/atsam4-rs/atsam4-hal" }
+#kiibohd-core = { path = "../../../kiibohd-core" }
