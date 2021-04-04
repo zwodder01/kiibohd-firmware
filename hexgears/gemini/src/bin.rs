@@ -12,7 +12,7 @@ use gemini::controller::*;
 
 // Panic handler
 extern crate panic_semihosting;
-use core::panic::PanicInfo;
+//use core::panic::PanicInfo;
 
 use cortex_m_rt::entry;
 use cortex_m_semihosting::hprintln;
@@ -30,11 +30,10 @@ use gemini::{
     Pins,
 };
 
-
 fn controller_setup() {
     unsafe {
         Latency_init();
-        //CLI_init();
+        CLI_init();
 
         // TODO Periodic function
 
@@ -75,17 +74,11 @@ fn main() -> ! {
     let gpio_ports = Ports::new(
         (
             peripherals.PIOA,
-            clocks
-                .peripheral_clocks
-                .pio_a
-                .into_enabled_clock(),
+            clocks.peripheral_clocks.pio_a.into_enabled_clock(),
         ),
         (
             peripherals.PIOB,
-            clocks
-                .peripheral_clocks
-                .pio_b
-                .into_enabled_clock(),
+            clocks.peripheral_clocks.pio_b.into_enabled_clock(),
         ),
     );
     let mut pins = Pins::new(gpio_ports);

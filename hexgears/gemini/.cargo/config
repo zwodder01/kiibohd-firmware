@@ -1,12 +1,3 @@
-[alias]
-be = "build --examples"
-br = "build --release"
-
-re = "run --example"
-rre = "run --release --example"
-
-bin = "objcopy --release -- -O binary target/gemini.dfu.bin"
-
 [target.thumbv7em-none-eabi]
 runner = 'arm-none-eabi-gdb'
 #runner = 'arm-none-eabi-gdb -q -x openocd.gdb'

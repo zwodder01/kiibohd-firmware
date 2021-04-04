@@ -21,7 +21,6 @@ extern "C" {
     /// NVM Storage Load Settings
     pub fn storage_load_settings();
 
-
     /// Output Module Setup
     pub fn Output_setup();
 

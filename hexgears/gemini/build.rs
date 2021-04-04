@@ -15,7 +15,7 @@ fn main() {
         let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
         File::create(out.join("memory.x"))
             .unwrap()
-            .write_all(include_bytes!("memory.x"))
+            .write_all(include_bytes!("../../common/memory/atsam4s8b.x"))
             .unwrap();
         println!("cargo:rustc-link-search={}", out.display());
         // TODO - Re-add once cmake is removed
@@ -26,7 +26,8 @@ fn main() {
     // Build controller static library
     // During the transition to rust, we'll need to link in the original kiibohd
     // controller codebase.
-    let dst = cmake::Config::new("controller")
+    let dst = cmake::Config::new("../../common/controller")
+        .cflag("-D_rustlib_")
         .define("CHIP", "sam4s8b")
         .define("COMPILER", "gcc")
         .define("ScanModule", "Gemini_Dusk_Dawn")
