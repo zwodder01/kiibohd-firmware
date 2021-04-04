@@ -6,7 +6,7 @@
 
 ```bash
 rustup install nightly
-rustup target add thumbv7em-none-eabi
+rustup target add thumbv7em-none-eabi --toolchain nightly
 rustup component add llvm-tools-preview
 cargo install cargo-binutils
 cargo install cargo-make

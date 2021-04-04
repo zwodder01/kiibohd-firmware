@@ -1,4 +1,5 @@
 // Copyright 2021 Jacob Alexander
+// Copyright 2021 Zion Koyl
 //
 // Licensed under the Apache License, Version 2.0, <LICENSE-APACHE or
 // http://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
@@ -23,6 +24,20 @@ fn main() {
     }
     //println!("cargo:rerun-if-changed=build.rs");
 
+    let defmap_rslt: String;
+    let partmap_rslt: String;
+    match env::var_os("DefaultMapOverride") {
+        Some(x) => defmap_rslt = x.into_string().unwrap(),
+        None => defmap_rslt = String::from("geminiduskdawn/release.1 stdFuncMap"),
+    }
+    let defmap: &str = &defmap_rslt;
+
+    match env::var_os("PartialMapsExpandedOverride") {
+        Some(x) => partmap_rslt = x.into_string().unwrap(),
+        None => partmap_rslt = String::from("geminiduskdawn/release.1.layer.1 stdFuncMap;geminiduskdawn/release.1.layer.2 stdFuncMap"),
+    }
+    let partmap: &str = &partmap_rslt;
+
     // Build controller static library
     // During the transition to rust, we'll need to link in the original kiibohd
     // controller codebase.
@@ -36,11 +51,8 @@ fn main() {
         .define("DebugModule", "full")
         .define("LayoutName", "")
         .define("BaseMap", "scancode_map")
-        .define("DefaultMap", "geminiduskdawn/release.1 stdFuncMap")
-        .define(
-            "PartialMaps",
-            "geminiduskdawn/release.1.layer.1 stdFuncMap;geminiduskdawn/release.1.layer.2 stdFuncMap",
-        )
+        .define("DefaultMap", defmap)
+        .define("PartialMaps", partmap)
         // TODO - Store VIDs in a config file
         .define("VENDOR_ID", 0x308F.to_string())
         .define("PRODUCT_ID", 0x0015.to_string())
