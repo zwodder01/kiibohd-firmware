@@ -1,6 +1,8 @@
 [target.thumbv7em-none-eabi]
 runner = 'arm-none-eabi-gdb'
 #runner = 'arm-none-eabi-gdb -q -x openocd.gdb'
+# probe-run doesn't have proper support for handling the bootloader
+#runner = "probe-run --chip ATSAM4S8B -v --speed 4000"
 
 [build]
 target = "thumbv7em-none-eabi"

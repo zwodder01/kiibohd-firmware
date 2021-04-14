@@ -13,16 +13,14 @@ use std::io::Write;
 use std::path::PathBuf;
 fn main() {
     // Setup memory map for linker
-    if env::var_os("CARGO_FEATURE_RT").is_some() {
-        let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
-        File::create(out.join("memory.x"))
-            .unwrap()
-            .write_all(include_bytes!("../../common/memory/atsam4s8b.x"))
-            .unwrap();
-        println!("cargo:rustc-link-search={}", out.display());
-        // TODO - Re-add once cmake is removed
-        //println!("cargo:rerun-if-changed=memory.x");
-    }
+    let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
+    File::create(out.join("memory.x"))
+        .unwrap()
+        .write_all(include_bytes!("../../common/memory/atsam4s8b.x"))
+        .unwrap();
+    println!("cargo:rustc-link-search={}", out.display());
+    // TODO - Re-add once cmake is removed
+    //println!("cargo:rerun-if-changed=memory.x");
     //println!("cargo:rerun-if-changed=build.rs");
 
     // Read PID and HID from project.env
@@ -103,7 +101,8 @@ fn main() {
         .define("COMPILER", "gcc")
         .define("ScanModule", "Gemini_Dusk_Dawn")
         .define("MacroModule", "PixelMap")
-        .define("OutputModule", "USB")
+        //.define("OutputModule", "UARTOut")
+        .define("OutputModule", "None")
         .define("DebugModule", "full")
         .define("LayoutName", "")
         .define("BaseMap", "scancode_map")

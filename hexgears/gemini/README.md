@@ -47,6 +47,12 @@ JLinkGDBServer -if SWD -device ATSAM4S8B
 pipenv run cargo +nightly make run
 ```
 
+You can also interact with the CLI using RTT at the same time.
+
+```bash
+JLinkRTTClientExe
+```
+
 
 ## License
 

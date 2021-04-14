@@ -2,3 +2,5 @@
 	path = common/controller
 	url = https://github.com/kiibohd/controller.git
 	branch = master
+[submodule "controller"]
+	branch = rustlib
