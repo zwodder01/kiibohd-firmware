@@ -7,8 +7,9 @@
 
 #![no_std]
 
-pub mod controller;
 pub use atsam4_hal as hal;
+use defmt_rtt as _;
+use panic_probe as _;
 use paste::paste;
 
 use atsam4_hal::{define_pin_map, gpio::*, pac::MATRIX};

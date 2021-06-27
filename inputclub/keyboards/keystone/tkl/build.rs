@@ -17,7 +17,7 @@ fn main() {
     File::create(out.join("memory.x"))
         .unwrap()
         .write_all(include_bytes!(
-            "../../common/memory/atsam4s8b_nobootloader.x"
+            "../../../../common/memory/atsam4s8b_nobootloader.x"
         ))
         .unwrap();
     println!("cargo:rustc-link-search={}", out.display());

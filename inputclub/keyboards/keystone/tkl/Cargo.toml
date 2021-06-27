@@ -1,9 +1,9 @@
 [package]
-name = "gemini"
+name = "keystonetkl"
 version = "0.1.0"
-authors = ["Jacob Alexander <haata@kiibohd.com>", "Zion Koyl <hiszd1@gmail.com>"]
+authors = ["Jacob Alexander <haata@kiibohd.com>"]
 edition = "2018"
-description = "Hexgears Gemini Dusk/Dawn Keyboard"
+description = "Input Club - Keystone - Tenkeyless analog keyboard firmware"
 keywords = ["arm", "cortex-m", "atsam4", "atsam4s", "atsam4s8b", "hal"]
 categories = ["embedded", "hardware-support", "no-std"]
 license = "MIT OR Apache-2.0"
@@ -13,7 +13,7 @@ repository = "https://github.com/kiibohd/kiibohd-firmware"
 path = "src/lib.rs"
 
 [[bin]]
-name = "gemini"
+name = "keystonetkl"
 path = "src/bin.rs"
 
 [dependencies]
@@ -26,8 +26,8 @@ defmt-rtt = "0.2"
 embedded-hal = "0.2.5"
 embedded-time = "0.10.1"
 heapless = "0.7"
+kiibohd-hall-effect-keyscanning = { git = "https://github.com/kiibohd/kiibohd-core.git" }
 kiibohd-hid-io = { git = "https://github.com/kiibohd/kiibohd-core.git" }
-kiibohd-keyscanning = { git = "https://github.com/kiibohd/kiibohd-core.git" }
 kiibohd-usb = { git = "https://github.com/kiibohd/kiibohd-core.git", default-features = false, features = ["hidio", "defmt-default"] }
 nb = "~0.1"
 panic-probe = { version = "0.2", features = ["print-defmt"] }
@@ -69,8 +69,8 @@ opt-level = 3 # <-
 overflow-checks = false # <-
 
 [patch."https://github.com/kiibohd/kiibohd-core.git"]
+#kiibohd-hall-effect-keyscanning = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-hall-effect-keyscanning" }
 #kiibohd-hid-io = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-hid-io" }
-#kiibohd-keyscanning = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-keyscanning" }
 #kiibohd-usb = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-usb" }
 
 [patch."https://github.com/haata/atsam4-hal.git"]

@@ -3,12 +3,8 @@ name: Rust Linux
 on: [push, pull_request]
 
 env:
-  PIPENV_ACTIVE: 1
   deb_packages: >-
     dfu-util
-    gcc-arm-none-eabi
-    ninja-build
-    python3-setuptools
 
 jobs:
   check:
@@ -16,9 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: true
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -29,14 +22,6 @@ jobs:
           crate: cargo-make
           version: latest
           use-tool-cache: true
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ env.deb_packages }}
-      - name: Install kll compiler
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install kll
       - uses: actions-rs/cargo@v1
         with:
           command: make
@@ -47,9 +32,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: true
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -70,10 +52,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ${{ env.deb_packages }}
-      - name: Install kll compiler
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install kll
       - uses: actions-rs/cargo@v1
         with:
           command: make
@@ -84,9 +62,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: true
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -107,9 +82,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: true
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -121,14 +93,6 @@ jobs:
           crate: cargo-make
           version: latest
           use-tool-cache: true
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ env.deb_packages }}
-      - name: Install kll compiler
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install kll
       - uses: actions-rs/cargo@v1
         with:
           command: make

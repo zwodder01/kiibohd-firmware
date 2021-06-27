@@ -14,19 +14,19 @@ Each keyboard has it's own directory.
 These commands are useful when testing changes across multiple devices.
 
 ```bash
-pipenv run cargo make check
-pipenv run cargo make fmt
-pipenv run cargo make fmt-check
-pipenv run cargo make clippy
+cargo make check
+cargo make fmt
+cargo make fmt-check
+cargo make clippy
 
 # Runs check, fmt-check and clippy
-pipenv run cargo make sanity
+cargo make sanity
 
-# Builds gdb debug binaries for all crates
-pipenv run cargo make build
+# Builds debug binaries for all crates
+cargo make build
 
 # Builds release .dfu.bin for all crates
-pipenv run cargo make bin-dfu
+cargo make bin-dfu
 ```
 
 The commands are used by GitHub Actions to verify changes.
