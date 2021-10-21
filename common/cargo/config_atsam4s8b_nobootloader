@@ -1,0 +1,13 @@
+[target.thumbv7em-none-eabi]
+#runner = 'arm-none-eabi-gdb -x ../../common/jlink.gdb'
+#runner = 'arm-none-eabi-gdb -q -x openocd.gdb'
+# probe-run doesn't have proper support for handling the bootloader
+runner = "probe-run --chip ATSAM4S8B -v"
+
+[build]
+target = "thumbv7em-none-eabi"
+rustflags = [
+   "-C", "link-arg=-Tlink.x",
+   "-C", "linker=flip-link",
+   "-C", "link-arg=-Tdefmt.x",
+]

@@ -9,6 +9,21 @@ Each keyboard has it's own directory.
 * [inputclub](inputclub) - Input Club device firmware.
 
 
+## Environment Setup
+
+To build you'll need the following tools installed:
+```bash
+rustup install nightly
+rustup default nightly
+rustup target add thumbv7em-none-eabi
+rustup component add llvm-tools-preview
+cargo install cargo-binutils cargo-make flip-link
+```
+
+It is recommended to default to the nightly compile as there are many experimental features used in dependencies.
+You can also add +nightly instead (e.g. `cargo +nightly build`).
+
+
 ## Top-Level Build Commands
 
 These commands are useful when testing changes across multiple devices.

@@ -34,23 +34,6 @@ cargo +nightly make flash
 ```
 
 
-## GDB Testing
-
-Requires a Segger JLink or OpenOCD compatible debugger attached to SWD.
-
-```bash
-JLinkGDBServer -if SWD -device ATSAM4S8B
-# In a different terminal
-cargo +nightly make run
-```
-
-You can also interact with the CLI using RTT at the same time.
-
-```bash
-JLinkRTTClientExe
-```
-
-
 ## License
 
 Licensed under either of

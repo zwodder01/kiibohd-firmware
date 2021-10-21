@@ -48,6 +48,11 @@ jobs:
           crate: cargo-binutils
           version: latest
           use-tool-cache: true
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: flip-link
+          version: latest
+          use-tool-cache: true
       - name: Install dependencies
         run: |
           sudo apt-get update

@@ -1,0 +1,42 @@
+[tasks.bin]
+command = "cargo"
+args = ["objcopy", "--release", "--", "-O", "binary", "target/${DEVICE_BIN_NAME}.dfu.bin"]
+
+[tasks.bin-dfu]
+command = "dfu-suffix"
+args = ["--add", "target/${DEVICE_BIN_NAME}.dfu.bin", "--vid", "${BOOT_VID}", "--pid", "${BOOT_PID}"]
+dependencies = ["bin"]
+
+[tasks.clippy]
+command = "cargo"
+args = ["clippy", "--", "-D", "warnings"]
+
+[tasks.doc]
+env = { "RUSTDOCFLAGS" = "-Dwarnings" }
+command = "cargo"
+args = ["doc"]
+
+[tasks.flash]
+command = "dfu-util"
+args = ["--alt", "0", "--download", "target/${DEVICE_BIN_NAME}.dfu.bin"]
+dependencies = ["bin-dfu"]
+
+[tasks.fmt]
+command = "cargo"
+args = ["fmt"]
+
+[tasks.fmt-check]
+command = "cargo"
+args = ["fmt", "--", "--check"]
+
+[tasks.run]
+command = "cargo"
+args = ["run"]
+
+[tasks.sanity]
+dependencies = [
+    "check",
+    "clippy",
+    "doc",
+    "fmt-check",
+]

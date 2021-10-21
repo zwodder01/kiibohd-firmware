@@ -357,10 +357,8 @@ mod app {
         });
 
         // If a full matrix scanning cycle has finished, process macros
-        if process_macros {
-            if macro_process::spawn().is_err() {
-                defmt::warn!("Could not schedule macro_process");
-            }
+        if process_macros && macro_process::spawn().is_err() {
+            defmt::warn!("Could not schedule macro_process");
         }
     }
 
