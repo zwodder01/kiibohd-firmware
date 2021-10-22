@@ -2,7 +2,7 @@
 name = "gemini"
 version = "0.1.0"
 authors = ["Jacob Alexander <haata@kiibohd.com>", "Zion Koyl <hiszd1@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "Hexgears Gemini Dusk/Dawn Keyboard"
 keywords = ["arm", "cortex-m", "atsam4", "atsam4s", "atsam4s8b", "hal"]
 categories = ["embedded", "hardware-support", "no-std"]

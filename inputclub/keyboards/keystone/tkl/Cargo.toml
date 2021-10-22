@@ -2,7 +2,7 @@
 name = "keystonetkl"
 version = "0.1.0"
 authors = ["Jacob Alexander <haata@kiibohd.com>"]
-edition = "2018"
+edition = "2021"
 description = "Input Club - Keystone - Tenkeyless analog keyboard firmware"
 keywords = ["arm", "cortex-m", "atsam4", "atsam4s", "atsam4s8b", "hal"]
 categories = ["embedded", "hardware-support", "no-std"]
