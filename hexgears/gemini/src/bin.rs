@@ -13,6 +13,14 @@
 
 use cortex_m_rt::exception;
 
+// ----- Flash Config -----
+
+const FLASH_CONFIG_SIZE: usize = 524288 / core::mem::size_of::<u32>();
+extern "C" {
+    #[link_name = "_flash"]
+    static mut FLASH_CONFIG: [u32; FLASH_CONFIG_SIZE];
+}
+
 // ----- RTIC -----
 
 // RTIC requires that unused interrupts are declared in an extern block when
@@ -20,9 +28,12 @@ use cortex_m_rt::exception;
 // software tasks.
 #[rtic::app(device = gemini::hal::pac, peripherals = true, dispatchers = [UART1, USART0, USART1, SSC, PWM, ACC, ADC, SPI])]
 mod app {
+    use crate::FLASH_CONFIG;
     use const_env::from_env;
     use core::convert::Infallible;
+    use core::fmt::Write;
     use heapless::spsc::{Producer, Queue};
+    use heapless::String;
     use kiibohd_hid_io::*;
     use kiibohd_keyscanning::KeyEvent;
     use kiibohd_usb::HidCountryCode;
@@ -30,6 +41,7 @@ mod app {
     use gemini::{
         hal::{
             clock::{ClockController, MainClock, SlowClock},
+            efc::Efc,
             gpio::*,
             pac::TC0,
             prelude::*,
@@ -77,8 +89,6 @@ mod app {
     const USB_MANUFACTURER: &str = "Unknown";
     #[from_env]
     const USB_PRODUCT: &str = "Kiibohd";
-    // TODO
-    const USB_SERIAL: &str = ">TODO SERIAL<";
 
     // ----- Types -----
 
@@ -161,6 +171,7 @@ mod app {
             ctrl_queue: Queue<kiibohd_usb::CtrlState, CTRL_QUEUE_SIZE> = Queue::new(),
             kbd_queue: Queue<kiibohd_usb::KeyState, KBD_QUEUE_SIZE> = Queue::new(),
             mouse_queue: Queue<kiibohd_usb::MouseState, MOUSE_QUEUE_SIZE> = Queue::new(),
+            serial_number: String<126> = String::new(),
             usb_bus: Option<UsbBusAllocator<UdpBus>> = None,
     ])]
     fn init(mut cx: init::Context) -> (Shared, Local, init::Monotonics) {
@@ -206,6 +217,18 @@ mod app {
         let mut wdt = Watchdog::new(cx.device.WDT);
         wdt.feed();
         defmt::trace!("Watchdog first feed");
+
+        // Setup flash controller (needed for unique id)
+        let efc = Efc::new(cx.device.EFC0, unsafe { &mut FLASH_CONFIG });
+        // Retrieve unique id and format it for the USB descriptor
+        let uid = efc.read_unique_id().unwrap();
+        write!(
+            &mut cx.local.serial_number,
+            "{:x}{:x}{:x}{:x}",
+            uid[0], uid[1], uid[2], uid[3]
+        )
+        .unwrap();
+        defmt::info!("UID: {}", cx.local.serial_number);
 
         // Setup Keyscanning Matrix
         defmt::trace!("Keyscanning Matrix initialization");
@@ -277,7 +300,7 @@ mod app {
             .max_power(500)
             .product(USB_PRODUCT)
             .supports_remote_wakeup(true) // TODO Add support
-            .serial_number(USB_SERIAL) // TODO how to store and format string
+            .serial_number(cx.local.serial_number)
             .device_release(0x1234) // TODO Get git revision info (sequential commit number)
             .build();
 

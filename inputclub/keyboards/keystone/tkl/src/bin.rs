@@ -13,6 +13,14 @@
 
 use cortex_m_rt::exception;
 
+// ----- Flash Config -----
+
+const FLASH_CONFIG_SIZE: usize = 524288 / core::mem::size_of::<u32>();
+extern "C" {
+    #[link_name = "_flash"]
+    static mut FLASH_CONFIG: [u32; FLASH_CONFIG_SIZE];
+}
+
 // ----- RTIC -----
 
 // RTIC requires that unused interrupts are declared in an extern block when
@@ -20,8 +28,11 @@ use cortex_m_rt::exception;
 // software tasks.
 #[rtic::app(device = keystonetkl::hal::pac, peripherals = true, dispatchers = [UART1, USART0, USART1, SSC, PWM, ACC, TWI0, TWI1])]
 mod app {
+    use crate::FLASH_CONFIG;
     use const_env::from_env;
+    use core::fmt::Write;
     use heapless::spsc::{Producer, Queue};
+    use heapless::String;
     use kiibohd_hid_io::*;
     use kiibohd_usb::HidCountryCode;
 
@@ -29,6 +40,7 @@ mod app {
         hal::{
             adc::{Adc, AdcPayload, Continuous, SingleEndedGain},
             clock::{ClockController, MainClock, SlowClock},
+            efc::Efc,
             gpio::*,
             pac::TC0,
             pdc::{ReadDma, RxDma, Transfer, W},
@@ -75,8 +87,6 @@ mod app {
     const USB_MANUFACTURER: &str = "Unknown";
     #[from_env]
     const USB_PRODUCT: &str = "Kiibohd";
-    // TODO
-    const USB_SERIAL: &str = ">TODO SERIAL<";
 
     // ----- Types -----
 
@@ -153,6 +163,7 @@ mod app {
             ctrl_queue: Queue<kiibohd_usb::CtrlState, CTRL_QUEUE_SIZE> = Queue::new(),
             kbd_queue: Queue<kiibohd_usb::KeyState, KBD_QUEUE_SIZE> = Queue::new(),
             mouse_queue: Queue<kiibohd_usb::MouseState, MOUSE_QUEUE_SIZE> = Queue::new(),
+            serial_number: String<126> = String::new(),
             usb_bus: Option<UsbBusAllocator<UdpBus>> = None,
     ])]
     fn init(mut cx: init::Context) -> (Shared, Local, init::Monotonics) {
@@ -198,6 +209,18 @@ mod app {
         let mut wdt = Watchdog::new(cx.device.WDT);
         wdt.feed();
         defmt::trace!("Watchdog first feed");
+
+        // Setup flash controller (needed for unique id)
+        let efc = Efc::new(cx.device.EFC0, unsafe { &mut FLASH_CONFIG });
+        // Retrieve unique id and format it for the USB descriptor
+        let uid = efc.read_unique_id().unwrap();
+        write!(
+            &mut cx.local.serial_number,
+            "{:x}{:x}{:x}{:x}",
+            uid[0], uid[1], uid[2], uid[3]
+        )
+        .unwrap();
+        defmt::info!("UID: {}", cx.local.serial_number);
 
         // Setup hall effect matrix
         defmt::trace!("HE Matrix initialization");
@@ -296,14 +319,14 @@ mod app {
             .max_power(500)
             .product(USB_PRODUCT)
             .supports_remote_wakeup(true) // TODO Add support
-            .serial_number(USB_SERIAL) // TODO how to store and format string
+            .serial_number(cx.local.serial_number)
             .device_release(0x1234) // TODO Get git revision info (sequential commit number)
             .build();
 
         // TODO This should only really be run when running with a debugger for development
         usb_dev.force_reset().unwrap();
 
-        // TODO Add feature for activity tick (don't use debug led for this)
+        // Setup main timer
         let tc0 = TimerCounter::new(
             cx.device.TC0,
             clocks.peripheral_clocks.tc_0.into_enabled_clock(),
@@ -316,7 +339,7 @@ mod app {
         defmt::trace!("TCC0 started");
         tcc0.enable_interrupt();
 
-        // Setup main timer (TODO May want to use a TC timer instead and reserve this for sleeping)
+        // Setup secondary timer (used for watchdog, activity led and sleep related functionality)
         let mut rtt = RealTimeTimer::new(cx.device.RTT, 3, false);
         rtt.start(500_000u32.microseconds());
         rtt.enable_alarm_interrupt();
@@ -369,9 +392,6 @@ mod app {
         // Blink debug led
         // TODO: Remove (or use feature flag)
         cx.shared.debug_led.lock(|w| w.toggle().ok());
-        if macro_process::spawn().is_err() {
-            defmt::warn!("Could not schedule macro_process");
-        }
     }
 
     /// Macro Processing Task
@@ -380,7 +400,6 @@ mod app {
     #[task(priority = 10)]
     fn macro_process(_cx: macro_process::Context) {
         // TODO Enable
-        //unsafe { Macro_periodic() };
 
         if usb_process::spawn().is_err() {
             defmt::warn!("Could not schedule usb_process");

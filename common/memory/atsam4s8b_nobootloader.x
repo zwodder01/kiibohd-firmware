@@ -7,3 +7,5 @@ MEMORY
   CS2 (xrw)  : ORIGIN = 0x62000000, LENGTH = 16M
   CS3 (xrw)  : ORIGIN = 0x63000000, LENGTH = 16M
 }
+
+_flash = ORIGIN(FLASH);
