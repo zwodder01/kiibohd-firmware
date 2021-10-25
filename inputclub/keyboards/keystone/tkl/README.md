@@ -1,4 +1,4 @@
-# Hexgears Gemini Dusk/Dawn Firmware
+# Input Club Keystone TKL Firmware
 
 See the top-level README.md for general build instructions.
 

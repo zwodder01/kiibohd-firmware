@@ -1,0 +1,34 @@
+[workspace]
+members = [
+    "common/xtask",
+    "hexgears/gemini",
+    "inputclub/keyboards/keystone/tkl",
+]
+
+# XXX Important when using gdb XXX
+# NOTE: Comment this section out when using gdb for a better experience
+#       Will increase binary size considerably though.
+[profile.dev]
+codegen-units = 1
+debug = 2
+debug-assertions = true # <-
+incremental = false
+opt-level = 3 # <-
+overflow-checks = true # <-
+
+[profile.release]
+codegen-units = 1
+debug = 2
+debug-assertions = false # <-
+incremental = false
+lto = 'fat'
+opt-level = 3 # <-
+overflow-checks = false # <-
+
+[patch."https://github.com/kiibohd/kiibohd-core.git"]
+#kiibohd-hid-io = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-hid-io" }
+#kiibohd-keyscanning = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-keyscanning" }
+#kiibohd-usb = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-usb" }
+
+[patch."https://github.com/haata/atsam4-hal.git"]
+#atsam4-hal = { path = "/home/hyatt/git/atsam-rs/atsam4-hal" }

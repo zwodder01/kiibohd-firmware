@@ -1,11 +1,19 @@
 [tasks.bin]
 command = "cargo"
-args = ["objcopy", "--release", "--", "-O", "binary", "target/${DEVICE_BIN_NAME}.dfu.bin"]
+args = ["objcopy", "--target", "thumbv7em-none-eabi", "--release", "--", "-O", "binary", "${TARGET_ROOT}/${DEVICE_BIN_NAME}.dfu.bin"]
 
 [tasks.bin-dfu]
 command = "dfu-suffix"
-args = ["--add", "target/${DEVICE_BIN_NAME}.dfu.bin", "--vid", "${BOOT_VID}", "--pid", "${BOOT_PID}"]
+args = ["--add", "${TARGET_ROOT}/${DEVICE_BIN_NAME}.dfu.bin", "--vid", "${BOOT_VID}", "--pid", "${BOOT_PID}"]
 dependencies = ["bin"]
+
+[tasks.build]
+command = "cargo"
+args = ["bb"]
+
+[tasks.build-release]
+command = "cargo"
+args = ["brb"]
 
 [tasks.clippy]
 command = "cargo"
@@ -18,7 +26,7 @@ args = ["doc"]
 
 [tasks.flash]
 command = "dfu-util"
-args = ["--alt", "0", "--download", "target/${DEVICE_BIN_NAME}.dfu.bin"]
+args = ["--alt", "0", "--download", "${TARGET_ROOT}/${DEVICE_BIN_NAME}.dfu.bin"]
 dependencies = ["bin-dfu"]
 
 [tasks.fmt]
@@ -29,9 +37,21 @@ args = ["fmt"]
 command = "cargo"
 args = ["fmt", "--", "--check"]
 
+[tasks.gdb-server]
+command = "cargo"
+args = ["xtask", "gdb-server"]
+
+[tasks.gdb-client]
+command = "cargo"
+args = ["xtask", "gdb-client"]
+
 [tasks.run]
 command = "cargo"
-args = ["run"]
+args = ["rb"]
+
+[tasks.run-release]
+command = "cargo"
+args = ["rrb"]
 
 [tasks.sanity]
 dependencies = [
