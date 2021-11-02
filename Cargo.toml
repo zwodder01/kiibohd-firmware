@@ -31,4 +31,4 @@ overflow-checks = false # <-
 #kiibohd-usb = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-usb" }
 
 [patch."https://github.com/haata/atsam4-hal.git"]
-atsam4-hal = { path = "/home/hyatt/git/atsam-rs/atsam4-hal" }
+#atsam4-hal = { path = "/home/hyatt/git/atsam-rs/atsam4-hal" }
