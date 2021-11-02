@@ -1,5 +1,7 @@
 # Kiibohd Firmware
 
+[![Rust Linux](https://github.com/kiibohd/kiibohd-firmware/actions/workflows/rust_linux.yml/badge.svg)](https://github.com/kiibohd/kiibohd-firmware/actions/workflows/rust_linux.yml)
+
 Rust successor to the [kiibohd-controller](https://github.com/kiibohd/controller) firmware.
 
 Each keyboard has it's own directory.
