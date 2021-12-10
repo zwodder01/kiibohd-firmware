@@ -33,6 +33,7 @@ mod app {
     use core::fmt::Write;
     use heapless::spsc::{Producer, Queue};
     use heapless::String;
+    use is31fl3743b::Is31fl3743bAtsam4Dma;
     use kiibohd_hid_io::*;
     use kiibohd_usb::HidCountryCode;
 
@@ -43,9 +44,10 @@ mod app {
             efc::Efc,
             gpio::*,
             pac::TC0,
-            pdc::{ReadDma, RxDma, Transfer, W},
+            pdc::{ReadDma, ReadDmaPaused, ReadWriteDmaLen, RxDma, RxTxDma, Transfer, W},
             prelude::*,
             rtt::RealTimeTimer,
+            spi::{SpiMaster, SpiPayload, Variable},
             time::duration::Extensions,
             timer::{ClockSource, TimerCounter, TimerCounterChannel},
             udp::{
@@ -57,6 +59,7 @@ mod app {
                 UdpBus,
             },
             watchdog::Watchdog,
+            //OutputPin,
             ToggleableOutputPin,
         },
         Pins,
@@ -74,6 +77,15 @@ mod app {
     const MSIZE: usize = RSIZE * CSIZE; // Total matrix size
     const ADC_SAMPLES: usize = 2; // Number of samples per key per strobe
     const ADC_BUF_SIZE: usize = ADC_SAMPLES * RSIZE; // Size of ADC buffer per strobe
+    const ISSI_DRIVER_CHIPS: usize = 2;
+    const ISSI_DRIVER_QUEUE_SIZE: usize = 5;
+    const ISSI_DRIVER_CS_LAYOUT: [u8; ISSI_DRIVER_CHIPS] = [0, 1];
+    // Must be 256 or less, or a power of 2; e.g. 512 due limitations with embedded-dma
+    // Actual value should be -> ISSI_DRIVER_CHIPS * 198 (e.g. 396);
+    // Size is determined by the largest SPI tx transaction
+    const SPI_TX_BUF_SIZE: usize = 512;
+    // Size is determined by the largest SPI rx transaction
+    const SPI_RX_BUF_SIZE: usize = (32 + 2) * ISSI_DRIVER_CHIPS;
 
     const KBD_QUEUE_SIZE: usize = 2;
     const MOUSE_QUEUE_SIZE: usize = 2;
@@ -108,6 +120,19 @@ mod app {
         ID_LEN,
     >;
     type Matrix = kiibohd_hall_effect_keyscanning::Matrix<PioX<Output<PushPull>>, CSIZE, MSIZE>;
+    type SpiTransferRxTx = Transfer<
+        W,
+        (
+            &'static mut [u32; SPI_RX_BUF_SIZE],
+            &'static mut [u32; SPI_TX_BUF_SIZE],
+        ),
+        RxTxDma<SpiPayload<Variable, u32>>,
+    >;
+    type SpiParkedDma = (
+        SpiMaster<u32>,
+        &'static mut [u32; SPI_RX_BUF_SIZE],
+        &'static mut [u32; SPI_TX_BUF_SIZE],
+    );
     type UsbDevice = usb_device::device::UsbDevice<'static, UdpBus>;
 
     // ----- Structs -----
@@ -138,9 +163,12 @@ mod app {
         adc: Option<AdcTransfer>,
         debug_led: Pa15<Output<PushPull>>,
         hidio_intf: HidioCommandInterface,
+        issi: Is31fl3743bAtsam4Dma<ISSI_DRIVER_CHIPS, ISSI_DRIVER_QUEUE_SIZE>,
         kbd_producer: Producer<'static, kiibohd_usb::KeyState, KBD_QUEUE_SIZE>,
         matrix: Matrix,
         rtt: RealTimeTimer,
+        spi: Option<SpiParkedDma>,
+        spi_rxtx: Option<SpiTransferRxTx>,
         tcc0: TimerCounterChannel<TC0, 0>,
         test: Option<bool>,
         usb_dev: UsbDevice,
@@ -164,6 +192,8 @@ mod app {
             kbd_queue: Queue<kiibohd_usb::KeyState, KBD_QUEUE_SIZE> = Queue::new(),
             mouse_queue: Queue<kiibohd_usb::MouseState, MOUSE_QUEUE_SIZE> = Queue::new(),
             serial_number: String<126> = String::new(),
+            spi_tx_buf: [u32; SPI_TX_BUF_SIZE] = [0; SPI_TX_BUF_SIZE],
+            spi_rx_buf: [u32; SPI_RX_BUF_SIZE] = [0; SPI_RX_BUF_SIZE],
             usb_bus: Option<UsbBusAllocator<UdpBus>> = None,
     ])]
     fn init(mut cx: init::Context) -> (Shared, Local, init::Monotonics) {
@@ -281,6 +311,67 @@ mod app {
         //adc.enable_rxbuff_interrupt(); // TODO Re-enable
         let adc = adc.with_continuous_pdc();
 
+        // Setup SPI for LED Drivers
+        defmt::trace!("SPI ISSI Driver initialization");
+        let wdrbt = false; // Wait data read before transfer enabled
+        let llb = false; // Local loopback
+                         // Cycles to delay between consecutive transfers
+        let dlybct = 0; // No delay
+        let mut spi = SpiMaster::<u32>::new(
+            cx.device.SPI,
+            clocks.peripheral_clocks.spi.into_enabled_clock(),
+            pins.spi_miso,
+            pins.spi_mosi,
+            pins.spi_sck,
+            atsam4_hal::spi::PeripheralSelectMode::Variable,
+            wdrbt,
+            llb,
+            dlybct,
+        );
+
+        // Setup each CS channel
+        let mode = atsam4_hal::spi::spi::MODE_3;
+        let csa = atsam4_hal::spi::ChipSelectActive::ActiveAfterTransfer;
+        let bits = atsam4_hal::spi::BitWidth::Width8Bit;
+        let baud = atsam4_hal::spi::Hertz(12_000_000_u32);
+        // Cycles to delay from CS to first valid SPCK
+        let dlybs = 0; // Half an SPCK clock period
+        let cs_settings =
+            atsam4_hal::spi::ChipSelectSettings::new(mode, csa, bits, baud, dlybs, dlybct);
+        for i in 0..ISSI_DRIVER_CHIPS {
+            spi.cs_setup(i as u8, cs_settings.clone()).unwrap();
+        }
+        spi.enable_txbufe_interrupt();
+
+        // Setup SPI with pdc
+        let spi = spi.with_pdc_rxtx();
+
+        // Setup ISSI LED Driver
+        let issi_default_brightness = 255; // TODO compile-time configuration + flash default
+        let issi_default_enable = true; // TODO compile-time configuration + flash default
+        let mut issi = Is31fl3743bAtsam4Dma::<ISSI_DRIVER_CHIPS, ISSI_DRIVER_QUEUE_SIZE>::new(
+            ISSI_DRIVER_CS_LAYOUT,
+            issi_default_brightness,
+            issi_default_enable,
+        );
+
+        // TODO Move scaling and pwm initialization to kll pixelmap setup
+        for chip in issi.pwm_page_buf() {
+            chip.iter_mut().for_each(|e| *e = 255);
+        }
+        for chip in issi.scaling_page_buf() {
+            chip.iter_mut().for_each(|e| *e = 100);
+        }
+        defmt::info!("pwm: {:?}", issi.pwm_page_buf());
+        defmt::info!("scaling: {:?}", issi.scaling_page_buf());
+
+        // Start ISSI LED Driver initialization
+        issi.reset().unwrap(); // Queue reset DMA transaction
+        issi.scaling().unwrap(); // Queue scaling default
+        issi.pwm().unwrap(); // Queue pwm default
+        let (rx_len, tx_len) = issi.tx_function(cx.local.spi_tx_buf).unwrap();
+        let spi_rxtx = spi.read_write_len(cx.local.spi_rx_buf, rx_len, cx.local.spi_tx_buf, tx_len);
+
         // Setup HID-IO interface
         defmt::trace!("HID-IO Interface initialization");
         let hidio_intf = HidioCommandInterface::new(
@@ -349,15 +440,18 @@ mod app {
             Shared {
                 adc: Some(adc.read(cx.local.adc_buf)),
                 debug_led: pins.debug_led,
-                rtt,
-                tcc0,
-                wdt,
+                hidio_intf,
+                issi,
+                kbd_producer,
                 matrix,
+                rtt,
+                spi: None,
+                spi_rxtx: Some(spi_rxtx),
+                tcc0,
+                test: Some(true),
                 usb_dev,
                 usb_hid,
-                hidio_intf,
-                test: Some(true),
-                kbd_producer,
+                wdt,
             },
             Local {},
             init::Monotonics {},
@@ -368,9 +462,26 @@ mod app {
     /// High-priority scheduled tasks as consistency is more important than speed for scanning
     /// key states
     /// Scans one strobe at a time
-    #[task(binds = TC0, shared = [adc, tcc0], priority = 13)]
+    #[task(binds = TC0, shared = [adc, issi, tcc0, spi, spi_rxtx], priority = 13)]
     fn tc0(mut cx: tc0::Context) {
         cx.shared.tcc0.lock(|w| w.clear_interrupt_flags());
+
+        /*
+        // TODO Determine best place to reinitialize SPI PDC
+        cx.shared.spi.lock(|spi| {
+            spi.enable_txbufe_interrupt();
+            let spi = spi.with_pdc_rxtx();
+            if let Some((spi, rx_buf, tx_buf)) = spi.take() {
+                cx.shared.issi.lock(|issi| {
+                    if let Ok((rx_len, tx_len)) = issi.tx_function(tx_buf) {
+                        cx.shared.spi_rxtx.lock(|spi_rxtx| {
+                            spi_rxtx.replace(spi.read_write_len(rx_buf, rx_len, tx_buf, tx_len));
+                        });
+                    }
+                });
+            }
+        });
+        */
 
         // Start next ADC DMA buffer read
         cx.shared.adc.lock(|adc| {
@@ -436,7 +547,7 @@ mod app {
     }
 
     /// ADC Interrupt
-    #[task(binds = ADC, shared = [adc, matrix], priority = 13)]
+    #[task(binds = ADC, priority = 13, shared = [adc, matrix])]
     fn adc(cx: adc::Context) {
         let mut adc = cx.shared.adc;
         let mut matrix = cx.shared.matrix;
@@ -506,6 +617,39 @@ mod app {
 
             // Prepare next DMA read, but don't start it yet
             adc_pdc.replace(adc.read_paused(buf));
+        });
+    }
+
+    /// SPI Interrupt
+    #[task(binds = SPI, priority = 12, shared = [issi, spi, spi_rxtx])]
+    fn spi(mut cx: spi::Context) {
+        let mut issi = cx.shared.issi;
+        let mut spi_rxtx = cx.shared.spi_rxtx;
+
+        spi_rxtx.lock(|spi_rxtx| {
+            // Retrieve DMA buffer
+            if let Some(spi_buf) = spi_rxtx.take() {
+                let ((rx_buf, tx_buf), spi) = spi_buf.wait();
+
+                issi.lock(|issi| {
+                    // Process Rx buffer if applicable
+                    issi.rx_function(rx_buf).unwrap();
+
+                    // Prepare the next DMA transaction
+                    if let Ok((rx_len, tx_len)) = issi.tx_function(tx_buf) {
+                        spi_rxtx.replace(spi.read_write_len(rx_buf, rx_len, tx_buf, tx_len));
+                    } else {
+                        // Disable PDC
+                        let mut spi = spi.revert();
+                        spi.disable_txbufe_interrupt();
+
+                        // No more transactions ready, park spi peripheral and buffers
+                        cx.shared.spi.lock(|spi_periph| {
+                            spi_periph.replace((spi, rx_buf, tx_buf));
+                        });
+                    }
+                });
+            }
         });
     }
 

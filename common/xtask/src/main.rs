@@ -208,10 +208,6 @@ fn gdb_server(
 
 fn gdb_client(elf: PathBuf) -> Result<(), anyhow::Error> {
     // Run gdb
-    cmd!(
-        "arm-none-eabi-gdb",
-        format!("{}", elf.display()),
-    )
-    .run()?;
+    cmd!("arm-none-eabi-gdb", format!("{}", elf.display()),).run()?;
     Ok(())
 }

@@ -1,5 +1,5 @@
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
-runner = "probe-run --chip ATSAM4S8B --speed 20000 -v"
+runner = "probe-run --chip ATSAM4S8B --speed 20000"
 rustflags = [
    "-C", "linker=flip-link",
    "-C", "link-arg=-Tlink.x",
@@ -19,6 +19,8 @@ brb = "build --target thumbv7em-none-eabi --release"
 rb = "run --target thumbv7em-none-eabi"
 rrb = "run --target thumbv7em-none-eabi --release"
 xtask = "run --package xtask --"
+nmb = "nm --target thumbv7em-none-eabi"
+objdumpb = "objdump --target thumbv7em-none-eabi -- --disassemble --no-show-raw-insn"
 
 [env]
 CARGO_TARGET = "thumbv7em-none-eabi"

@@ -29,6 +29,7 @@ overflow-checks = false # <-
 #kiibohd-hid-io = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-hid-io" }
 #kiibohd-keyscanning = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-keyscanning" }
 #kiibohd-usb = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/kiibohd-usb" }
+is31fl3743b = { path = "/home/hyatt/Source/kiibohd/kiibohd-core/is31fl3743b" }
 
 [patch."https://github.com/haata/atsam4-hal.git"]
-#atsam4-hal = { path = "/home/hyatt/git/atsam-rs/atsam4-hal" }
+atsam4-hal = { path = "/home/hyatt/git/atsam-rs/atsam4-hal" }
