@@ -25,6 +25,8 @@ cargo install cargo-binutils cargo-make flip-link
 It is recommended to default to the nightly compile as there are many experimental features used in dependencies.
 You can also add +nightly instead (e.g. `cargo +nightly build`).
 
+**NOTE**: It is recommended to use Linux, macOS or WSL for development. Cygwin and native Windows builds are not supported currently.
+
 
 ## Top-Level Build Commands
 
