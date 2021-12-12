@@ -72,7 +72,6 @@ cargo make run
 To use gdb you'll need a few things:
 
 - `cargo install defmt-print`
-- `cargo install cargo-binutils`
 - openocd >= 0.11.0 (needed for RTT support)
 - nc (netcat)
 - Comment out this section in `Cargo.toml` (otherwise gdb isn't as useful).
