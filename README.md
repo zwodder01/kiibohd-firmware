@@ -19,7 +19,7 @@ rustup install nightly
 rustup default nightly
 rustup target add thumbv7em-none-eabi
 rustup component add llvm-tools-preview
-cargo install cargo-binutils cargo-make flip-link
+cargo install cargo-binutils cargo-make flip-link probe-run
 ```
 
 It is recommended to default to the nightly compile as there are many experimental features used in dependencies.
