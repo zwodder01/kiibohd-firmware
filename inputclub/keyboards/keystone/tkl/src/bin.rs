@@ -9,7 +9,6 @@
 #![allow(clippy::inconsistent_struct_constructor)]
 #![no_std]
 #![no_main]
-#![feature(asm)]
 
 use cortex_m_rt::exception;
 
