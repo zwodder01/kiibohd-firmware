@@ -28,7 +28,7 @@ fn main() -> Result<(), anyhow::Error> {
         Ok(val) => val,
         Err(_) => CARGO_TARGET.to_string(),
     };
-    let crate_name = match env::var("CRATE_NAME") {
+    let binary_name = match env::var("CARGO_MAKE_BINARY_EXECUTABLE_NAME") {
         Ok(val) => val,
         // Attempt to guess based on the CWD
         Err(_) => current_crate_name()?,
@@ -55,7 +55,7 @@ fn main() -> Result<(), anyhow::Error> {
         .join("target")
         .join(cargo_target.clone())
         .join("debug")
-        .join(crate_name.clone());
+        .join(binary_name.clone());
 
     match &args[..] {
         ["gdb-server"] => gdb_server(
@@ -87,7 +87,7 @@ COMMANDS:
 ",
             cargo_target,
             CARGO_TARGET,
-            crate_name,
+            binary_name,
             current_crate_name()?,
             openocd_interface,
             OPENOCD_INTERFACE,
