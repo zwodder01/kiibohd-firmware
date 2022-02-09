@@ -27,3 +27,6 @@ CARGO_TARGET = "thumbv7em-none-eabi"
 OPENOCD_INTERFACE = "cmsis-dap"
 OPENOCD_TARGET = "at91sam4sXX"
 SWD_SPEED = "20000" # kHz
+
+[unstable]
+features = ["host_dep"]

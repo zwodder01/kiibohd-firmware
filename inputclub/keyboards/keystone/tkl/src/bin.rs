@@ -244,7 +244,7 @@ mod app {
         // Retrieve unique id and format it for the USB descriptor
         let uid = efc.read_unique_id().unwrap();
         write!(
-            &mut cx.local.serial_number,
+            cx.local.serial_number,
             "{:x}{:x}{:x}{:x}",
             uid[0], uid[1], uid[2], uid[3]
         )
@@ -682,7 +682,7 @@ unsafe fn HardFault(_ef: &cortex_m_rt::ExceptionFrame) -> ! {
 defmt::timestamp!("{=u32} us", {
     // TODO (HaaTa): Determine a way to calculate the divider automatically
     //               Or transition to a hardware timer?
-    cortex_m::peripheral::DWT::get_cycle_count() / 120
+    cortex_m::peripheral::DWT::cycle_count() / 120
 });
 
 // same panicking *behavior* as `panic-probe` but doesn't print a panic message
