@@ -1,6 +1,3 @@
-[submodule "common/controller"]
-	path = common/controller
-	url = https://github.com/kiibohd/controller.git
-	branch = master
-[submodule "controller"]
-	branch = rustlib
+[submodule "common/layouts"]
+	path = common/layouts
+	url = https://github.com/hid-io/layouts.git

@@ -14,6 +14,12 @@ use paste::paste;
 
 use atsam4_hal::{define_pin_map, gpio::*, pac::MATRIX};
 
+/// [AUTO GENERATED]
+pub mod kll {
+    //#![allow(clippy::all)]
+    include!(concat!(env!("OUT_DIR"), "/generated_kll.rs"));
+}
+
 define_pin_map! {
     struct Pins,
 
