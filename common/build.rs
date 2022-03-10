@@ -64,21 +64,20 @@ fn main() {
     // Gather kll layers
     // First split on ; (layers) then on , (combined files in a layer)
     let mut defaultmap_files = Vec::new();
-    for (i, layer) in env::var("KLL_LAYERS")
-        .unwrap_or_else(|_| "".to_string())
-        .split(';')
-        .enumerate()
-    {
-        for layer_file in layer.split(',') {
-            let file = PathBuf::from(layer_file);
-            // Make sure the file exists
-            assert!(file.is_file(), "{:?} does not exist", file);
-            filestore.load_file(&file);
-            println!("cargo:rerun-if-changed={}", file.as_path().display());
-            if i == 0 {
-                defaultmap_files.push(file);
-            } else {
-                // TODO
+    let layers = env::var("KLL_LAYERS").unwrap_or_else(|_| "".to_string());
+    if !layers.is_empty() {
+        for (i, layer) in layers.split(';').enumerate() {
+            for layer_file in layer.split(',') {
+                let file = PathBuf::from(layer_file);
+                // Make sure the file exists
+                assert!(file.is_file(), "{:?} does not exist", file);
+                filestore.load_file(&file);
+                println!("cargo:rerun-if-changed={}", file.as_path().display());
+                if i == 0 {
+                    defaultmap_files.push(file);
+                } else {
+                    // TODO
+                }
             }
         }
     }

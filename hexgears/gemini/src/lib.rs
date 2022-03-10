@@ -1,4 +1,4 @@
-// Copyright 2021 Jacob Alexander
+// Copyright 2021-2022 Jacob Alexander
 //
 // Licensed under the Apache License, Version 2.0, <LICENSE-APACHE or
 // http://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
@@ -13,6 +13,12 @@ use panic_probe as _;
 use paste::paste;
 
 use atsam4_hal::{define_pin_map, gpio::*, pac::MATRIX};
+
+/// [AUTO GENERATED]
+pub mod kll {
+    //#![allow(clippy::all)]
+    include!(concat!(env!("OUT_DIR"), "/generated_kll.rs"));
+}
 
 define_pin_map! {
     struct Pins,

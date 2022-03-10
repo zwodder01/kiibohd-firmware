@@ -39,6 +39,10 @@ version = "0.1.15"
 default-features = false
 features = ["atsam4s8b", "usb", "defmt-default"]
 
+[build-dependencies]
+dotenv = "0.15"
+kll-compiler = { git = "https://github.com/kiibohd/kiibohd-core.git" }
+
 [features]
 default = [
     "defmt-default",
