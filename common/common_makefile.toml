@@ -1,10 +1,10 @@
 [tasks.bin]
 command = "cargo"
-args = ["objcopy", "--target", "thumbv7em-none-eabi", "--release", "--", "-O", "binary", "${TARGET_ROOT}/${DEVICE_BIN_NAME}.dfu.bin"]
+args = ["objcopy", "--target", "thumbv7em-none-eabi", "--release", "--", "-O", "binary", "${TOP_LEVEL}/target/${DEVICE_BIN_NAME}.dfu.bin"]
 
 [tasks.bin-dfu]
 command = "dfu-suffix"
-args = ["--add", "${TARGET_ROOT}/${DEVICE_BIN_NAME}.dfu.bin", "--vid", "${BOOT_VID}", "--pid", "${BOOT_PID}"]
+args = ["--add", "${TOP_LEVEL}/target/${DEVICE_BIN_NAME}.dfu.bin", "--vid", "${BOOT_VID}", "--pid", "${BOOT_PID}"]
 dependencies = ["bin"]
 
 [tasks.build]
@@ -26,7 +26,7 @@ args = ["doc"]
 
 [tasks.flash]
 command = "dfu-util"
-args = ["--alt", "0", "--download", "${TARGET_ROOT}/${DEVICE_BIN_NAME}.dfu.bin"]
+args = ["--alt", "0", "--download", "${TOP_LEVEL}/target/${DEVICE_BIN_NAME}.dfu.bin"]
 dependencies = ["bin-dfu"]
 
 [tasks.fmt]

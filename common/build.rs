@@ -21,10 +21,10 @@ fn main() {
     dotenv::from_filename("project.env").ok();
 
     // Setup memory map for linker
-    let linker_file =
-        &PathBuf::from(env::var_os("CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY").unwrap())
-            .join(env::var_os("LINKER_SCRIPT").unwrap());
-    let memory_x = std::fs::read_to_string(linker_file).expect("Unable to read file");
+    let linker_file = &PathBuf::from(env::var_os("TOP_LEVEL").unwrap())
+        .join(env::var_os("LINKER_SCRIPT").unwrap());
+    let memory_x = std::fs::read_to_string(linker_file)
+        .unwrap_or_else(|_| panic!("Unable to read file: {:?}", linker_file));
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
     File::create(out.join("memory.x"))
         .unwrap()
@@ -83,9 +83,7 @@ fn main() {
     }
 
     // Retrieve layouts
-    let layouts_path =
-        PathBuf::from(env::var_os("CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY").unwrap())
-            .join("common/layouts");
+    let layouts_path = PathBuf::from(env::var_os("TOP_LEVEL").unwrap()).join("common/layouts");
     let layouts = Layouts::from_dir(layouts_path);
 
     // TODO Handle layers
